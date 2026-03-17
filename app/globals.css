@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --surface: #f5f5f5;
+  --border: rgba(0, 0, 0, 0.12);
+  --muted: #6b7280;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --surface: #141414;
+  --border: rgba(255, 255, 255, 0.1);
+  --muted: #9ca3af;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Native date/time input theming */
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+}
+
+.dark input[type="date"],
+.dark input[type="time"] {
+  color-scheme: dark;
+}
+
+/* Smooth transitions for theme switching */
+*, *::before, *::after {
+  transition-property: background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* But not for transforms/opacity (would delay animations) */
+.no-transition, button, input, textarea {
+  transition-property: background-color, border-color, color, opacity, transform, box-shadow;
+}

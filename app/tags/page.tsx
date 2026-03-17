@@ -1,0 +1,143 @@
+"use client";
+
+export const dynamic = "force-dynamic";
+
+import { useState } from "react";
+import { useTags } from "@/lib/hooks/useTags";
+import type { Tag } from "@/lib/database.types";
+
+function TagRow({ tag, onRename }: { tag: Tag; onRename: (id: string, name: string) => Promise<{ error: string | undefined }> }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(tag.name);
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!value.trim() || value.trim() === tag.name) {
+      setValue(tag.name);
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    await onRename(tag.id, value.trim());
+    setSaving(false);
+    setEditing(false);
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 min-h-[56px]">
+      {/* Colour swatch */}
+      <span
+        className="flex-shrink-0 w-4 h-4 rounded-full"
+        style={{ backgroundColor: tag.colour }}
+      />
+
+      {editing ? (
+        <input
+          autoFocus
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={save}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") { setValue(tag.name); setEditing(false); }
+          }}
+          className="flex-1 bg-transparent text-sm text-foreground focus:outline-none border-b border-accent"
+          disabled={saving}
+        />
+      ) : (
+        <span className="flex-1 text-sm font-medium text-foreground">{tag.name}</span>
+      )}
+
+      {!editing && (
+        <button
+          onClick={() => setEditing(true)}
+          className="text-xs text-muted hover:text-foreground transition-colors px-2 py-1"
+        >
+          Rename
+        </button>
+      )}
+      {editing && saving && (
+        <span className="text-xs text-muted">Saving…</span>
+      )}
+    </div>
+  );
+}
+
+export default function TagsPage() {
+  const { tags, createTag, renameTag, isLoading } = useTags();
+  const [newTagName, setNewTagName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTagName.trim()) return;
+    setCreating(true);
+    setError(null);
+    const result = await createTag(newTagName.trim());
+    setCreating(false);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setNewTagName("");
+    }
+  }
+
+  return (
+    <main
+      className="px-4 pt-6 pb-4 max-w-lg mx-auto w-full"
+      style={{ paddingBottom: "calc(5rem + env(safe-area-inset-bottom))" }}
+    >
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-foreground">Tags</h1>
+        <p className="mt-1 text-sm text-muted">
+          Tags group your time entries. Every entry needs one.
+        </p>
+      </div>
+
+      {/* Add new tag */}
+      <form onSubmit={handleCreate} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={newTagName}
+          onChange={(e) => setNewTagName(e.target.value)}
+          placeholder="New tag name…"
+          className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
+        />
+        <button
+          type="submit"
+          disabled={creating || !newTagName.trim()}
+          className="rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
+        >
+          {creating ? "Adding…" : "Add"}
+        </button>
+      </form>
+
+      {error && <p className="text-xs text-red-400 mb-4">{error}</p>}
+
+      {/* Tag list */}
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-14 rounded-xl bg-surface border border-border animate-pulse" />
+          ))}
+        </div>
+      ) : tags.length === 0 ? (
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted">No tags yet</p>
+          <p className="mt-1 text-xs text-muted">Add your first tag above to get started</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {tags.map((tag) => (
+            <TagRow key={tag.id} tag={tag} onRename={renameTag} />
+          ))}
+        </div>
+      )}
+
+      <p className="mt-6 text-xs text-muted">
+        Renaming a tag updates all historical entries automatically.
+      </p>
+    </main>
+  );
+}
