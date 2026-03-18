@@ -89,5 +89,13 @@ export function useTags() {
     return { error: error?.message };
   }, [supabase]);
 
-  return { tags, createTag, renameTag, isLoading };
+  const deleteTag = useCallback(async (id: string) => {
+    const { error } = await supabase.from("tags").delete().eq("id", id);
+    if (error) {
+      return { error: error.code === "23503" ? "Tag is in use and can't be deleted" : error.message };
+    }
+    return { error: undefined };
+  }, [supabase]);
+
+  return { tags, createTag, renameTag, deleteTag, isLoading };
 }

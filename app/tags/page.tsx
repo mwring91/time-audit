@@ -6,10 +6,16 @@ import { useState } from "react";
 import { useTags } from "@/lib/hooks/useTags";
 import type { Tag } from "@/lib/database.types";
 
-function TagRow({ tag, onRename }: { tag: Tag; onRename: (id: string, name: string) => Promise<{ error: string | undefined }> }) {
+function TagRow({ tag, onRename, onDelete }: {
+  tag: Tag;
+  onRename: (id: string, name: string) => Promise<{ error: string | undefined }>;
+  onDelete: (id: string) => Promise<{ error: string | undefined }>;
+}) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(tag.name);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function save() {
     if (!value.trim() || value.trim() === tag.name) {
@@ -23,48 +29,69 @@ function TagRow({ tag, onRename }: { tag: Tag; onRename: (id: string, name: stri
     setEditing(false);
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    setDeleteError(null);
+    const result = await onDelete(tag.id);
+    setDeleting(false);
+    if (result.error) setDeleteError(result.error);
+  }
+
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 min-h-[56px]">
-      {/* Colour swatch */}
-      <span
-        className="flex-shrink-0 w-4 h-4 rounded-full"
-        style={{ backgroundColor: tag.colour }}
-      />
-
-      {editing ? (
-        <input
-          autoFocus
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onBlur={save}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") save();
-            if (e.key === "Escape") { setValue(tag.name); setEditing(false); }
-          }}
-          className="flex-1 bg-transparent text-sm text-foreground focus:outline-none border-b border-accent"
-          disabled={saving}
+    <div className="rounded-xl border border-border bg-surface px-4 py-3 min-h-[56px]">
+      <div className="flex items-center gap-3">
+        <span
+          className="flex-shrink-0 w-4 h-4 rounded-full"
+          style={{ backgroundColor: tag.colour }}
         />
-      ) : (
-        <span className="flex-1 text-sm font-medium text-foreground">{tag.name}</span>
-      )}
 
-      {!editing && (
-        <button
-          onClick={() => setEditing(true)}
-          className="text-xs text-muted hover:text-foreground transition-colors px-2 py-1"
-        >
-          Rename
-        </button>
-      )}
-      {editing && saving && (
-        <span className="text-xs text-muted">Saving…</span>
+        {editing ? (
+          <input
+            autoFocus
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={save}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") save();
+              if (e.key === "Escape") { setValue(tag.name); setEditing(false); }
+            }}
+            className="flex-1 bg-transparent text-sm text-foreground focus:outline-none border-b border-accent"
+            disabled={saving}
+          />
+        ) : (
+          <span className="flex-1 text-sm font-medium text-foreground">{tag.name}</span>
+        )}
+
+        {!editing && (
+          <>
+            <button
+              onClick={() => { setEditing(true); setDeleteError(null); }}
+              className="text-xs text-muted hover:text-foreground transition-colors px-2 py-1"
+            >
+              Rename
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-xs text-muted hover:text-red-400 transition-colors px-2 py-1 disabled:opacity-40"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          </>
+        )}
+        {editing && saving && (
+          <span className="text-xs text-muted">Saving…</span>
+        )}
+      </div>
+      {deleteError && (
+        <p className="mt-1.5 text-xs text-red-400 pl-7">{deleteError}</p>
       )}
     </div>
   );
 }
 
 export default function TagsPage() {
-  const { tags, createTag, renameTag, isLoading } = useTags();
+  const { tags, createTag, renameTag, deleteTag, isLoading } = useTags();
   const [newTagName, setNewTagName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +157,7 @@ export default function TagsPage() {
       ) : (
         <div className="space-y-2">
           {tags.map((tag) => (
-            <TagRow key={tag.id} tag={tag} onRename={renameTag} />
+            <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} />
           ))}
         </div>
       )}
