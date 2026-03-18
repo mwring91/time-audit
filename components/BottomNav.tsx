@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
+import { createClient } from "@/lib/supabase";
 
 function HomeIcon({ active }: { active: boolean }) {
   return (
@@ -62,9 +63,25 @@ const navItems = [
   { href: "/tags", label: "Tags", Icon: TagIcon },
 ];
 
+function SignOutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+
+  async function handleSignOut() {
+    await createClient().auth.signOut();
+    router.replace("/login");
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t border-border"
@@ -94,6 +111,14 @@ export default function BottomNav() {
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
           {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+        </button>
+
+        <button
+          onClick={handleSignOut}
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-muted hover:text-foreground transition-colors"
+          aria-label="Sign out"
+        >
+          <SignOutIcon />
         </button>
       </div>
     </nav>
