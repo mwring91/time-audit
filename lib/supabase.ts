@@ -6,6 +6,7 @@ export function createClient() {
   // In production these are always real values; middleware blocks unauthenticated access.
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://placeholder.supabase.co",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "placeholder-anon-key"
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "placeholder-anon-key",
+    { auth: { flowType: "pkce" } }
   );
 }
