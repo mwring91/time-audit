@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { formatDuration, getDurationSeconds, formatDate } from "@/lib/constants";
+import { formatDuration, getDurationSeconds, formatDate, formatTimeRange } from "@/lib/constants";
 import type { EntryWithTag, Tag } from "@/lib/database.types";
 
 interface ReviewByTaskProps {
   entries: EntryWithTag[];
   tags: Tag[];
+  onTapEntry: (entry: EntryWithTag) => void;
 }
 
 interface TaskGroup {
@@ -18,7 +19,7 @@ interface TaskGroup {
   dayBreakdown: { date: string; seconds: number }[];
 }
 
-export default function ReviewByTask({ entries, tags }: ReviewByTaskProps) {
+export default function ReviewByTask({ entries, tags, onTapEntry }: ReviewByTaskProps) {
   const [filterTagId, setFilterTagId] = useState<string | null>(null);
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
 
@@ -164,16 +165,25 @@ export default function ReviewByTask({ entries, tags }: ReviewByTaskProps) {
                   </p>
                 </button>
 
-                {/* Day breakdown */}
+                {/* Individual entries */}
                 {isExpanded && (
-                  <div className="border-t border-border px-4 py-3 space-y-1.5">
-                    {group.dayBreakdown
-                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                      .map((day) => (
-                        <div key={day.date} className="flex justify-between text-xs">
-                          <span className="text-muted">{formatDate(new Date(day.date))}</span>
-                          <span className="text-foreground font-medium">{formatDuration(day.seconds)}</span>
-                        </div>
+                  <div className="border-t border-border divide-y divide-border">
+                    {entries
+                      .filter((e) => e.task_name === group.taskName && e.ended_at)
+                      .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+                      .map((entry) => (
+                        <button
+                          key={entry.id}
+                          onClick={() => onTapEntry(entry)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
+                        >
+                          <span className="text-xs text-muted">
+                            {formatDate(new Date(entry.started_at))} · {formatTimeRange(entry.started_at, entry.ended_at)}
+                          </span>
+                          <span className="text-xs font-medium text-foreground ml-3 flex-shrink-0">
+                            {formatDuration(getDurationSeconds(entry.started_at, entry.ended_at))}
+                          </span>
+                        </button>
                       ))}
                   </div>
                 )}

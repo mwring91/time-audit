@@ -7,7 +7,9 @@ import dynamicImport from "next/dynamic";
 import { useEntries } from "@/lib/hooks/useEntries";
 import { useTags } from "@/lib/hooks/useTags";
 import ReviewByTask from "@/components/ReviewByTask";
+import EditSheet from "@/components/EditSheet";
 import { toDateInputValue } from "@/lib/constants";
+import type { EntryWithTag } from "@/lib/database.types";
 
 // Recharts uses window — must be SSR-disabled
 const ReviewByDay = dynamicImport(() => import("@/components/ReviewByDay"), { ssr: false });
@@ -32,8 +34,9 @@ export default function ReviewPage() {
     to: new Date(toStr + "T23:59:59"),
   }), [fromStr, toStr]);
 
-  const { entries, isLoading } = useEntries(dateRange);
+  const { entries, isLoading, updateEntry, deleteEntry } = useEntries(dateRange);
   const { tags } = useTags();
+  const [editEntry, setEditEntry] = useState<EntryWithTag | null>(null);
 
   return (
     <main
@@ -87,10 +90,18 @@ export default function ReviewPage() {
           ))}
         </div>
       ) : view === "task" ? (
-        <ReviewByTask entries={entries} tags={tags} />
+        <ReviewByTask entries={entries} tags={tags} onTapEntry={setEditEntry} />
       ) : (
         <ReviewByDay entries={entries} tags={tags} from={dateRange.from} to={dateRange.to} />
       )}
+      <EditSheet
+        entry={editEntry}
+        tags={tags}
+        open={!!editEntry}
+        onClose={() => setEditEntry(null)}
+        onSave={async (id, data) => { await updateEntry(id, data); }}
+        onDelete={async (id) => { await deleteEntry(id); }}
+      />
     </main>
   );
 }
