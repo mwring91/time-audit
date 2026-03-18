@@ -97,5 +97,10 @@ export function useTags() {
     return { error: undefined };
   }, [supabase]);
 
-  return { tags, createTag, renameTag, deleteTag, isLoading };
+  const recolourTag = useCallback(async (id: string, colour: string) => {
+    const { error } = await supabase.from("tags").update({ colour }).eq("id", id);
+    return { error: error?.message };
+  }, [supabase]);
+
+  return { tags, createTag, renameTag, deleteTag, recolourTag, isLoading };
 }

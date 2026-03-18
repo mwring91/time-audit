@@ -2,20 +2,35 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTags } from "@/lib/hooks/useTags";
+import { TAG_COLOURS } from "@/lib/constants";
 import type { Tag } from "@/lib/database.types";
 
-function TagRow({ tag, onRename, onDelete }: {
+function TagRow({ tag, onRename, onDelete, onRecolour }: {
   tag: Tag;
   onRename: (id: string, name: string) => Promise<{ error: string | undefined }>;
   onDelete: (id: string) => Promise<{ error: string | undefined }>;
+  onRecolour: (id: string, colour: string) => Promise<{ error: string | undefined }>;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(tag.name);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [showColours, setShowColours] = useState(false);
+  const colourRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showColours) return;
+    function handleClick(e: MouseEvent) {
+      if (colourRef.current && !colourRef.current.contains(e.target as Node)) {
+        setShowColours(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showColours]);
 
   async function save() {
     if (!value.trim() || value.trim() === tag.name) {
@@ -37,13 +52,40 @@ function TagRow({ tag, onRename, onDelete }: {
     if (result.error) setDeleteError(result.error);
   }
 
+  async function handleRecolour(colour: string) {
+    setShowColours(false);
+    await onRecolour(tag.id, colour);
+  }
+
   return (
     <div className="rounded-xl border border-border bg-surface px-4 py-3 min-h-[56px]">
       <div className="flex items-center gap-3">
-        <span
-          className="flex-shrink-0 w-4 h-4 rounded-full"
-          style={{ backgroundColor: tag.colour }}
-        />
+        {/* Colour swatch — click to open picker */}
+        <div ref={colourRef} className="relative flex-shrink-0">
+          <button
+            onClick={() => setShowColours((v) => !v)}
+            className="w-5 h-5 rounded-full ring-2 ring-offset-2 ring-offset-surface ring-transparent hover:ring-border transition-all"
+            style={{ backgroundColor: tag.colour }}
+            aria-label="Change colour"
+          />
+          {showColours && (
+            <div className="absolute left-0 top-7 z-10 flex gap-2 p-2 rounded-xl border border-border bg-surface shadow-lg">
+              {TAG_COLOURS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => handleRecolour(c)}
+                  className="w-5 h-5 rounded-full transition-transform hover:scale-110"
+                  style={{
+                    backgroundColor: c,
+                    outline: c === tag.colour ? "2px solid white" : "none",
+                    outlineOffset: "2px",
+                  }}
+                  aria-label={c}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         {editing ? (
           <input
@@ -84,14 +126,14 @@ function TagRow({ tag, onRename, onDelete }: {
         )}
       </div>
       {deleteError && (
-        <p className="mt-1.5 text-xs text-red-400 pl-7">{deleteError}</p>
+        <p className="mt-1.5 text-xs text-red-400 pl-8">{deleteError}</p>
       )}
     </div>
   );
 }
 
 export default function TagsPage() {
-  const { tags, createTag, renameTag, deleteTag, isLoading } = useTags();
+  const { tags, createTag, renameTag, deleteTag, recolourTag, isLoading } = useTags();
   const [newTagName, setNewTagName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,7 +199,7 @@ export default function TagsPage() {
       ) : (
         <div className="space-y-2">
           {tags.map((tag) => (
-            <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} />
+            <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} />
           ))}
         </div>
       )}
