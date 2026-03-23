@@ -103,7 +103,11 @@ export function useTags() {
   }, [supabase]);
 
   const recategoriseTag = useCallback(async (id: string, category: "work" | "personal") => {
+    setTags((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));
     const { error } = await supabase.from("tags").update({ category }).eq("id", id);
+    if (error) {
+      setTags((prev) => prev.map((t) => (t.id === id ? { ...t, category: category === "work" ? "personal" : "work" } : t)));
+    }
     return { error: error?.message };
   }, [supabase]);
 

@@ -227,26 +227,12 @@ export default function TagsPage() {
           <p className="mt-1 text-xs text-muted">Add your first tag above to get started</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {workTags.length > 0 && (
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Work</h2>
-              <div className="space-y-2">
-                {workTags.map((tag) => (
-                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} onRecategorise={recategoriseTag} />
-                ))}
-              </div>
-            </div>
-          )}
-          {personalTags.length > 0 && (
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Personal</h2>
-              <div className="space-y-2">
-                {personalTags.map((tag) => (
-                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} onRecategorise={recategoriseTag} />
-                ))}
-              </div>
-            </div>
+        <div className="space-y-2">
+          {(newTagCategory === "work" ? workTags : personalTags).map((tag) => (
+            <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} onRecategorise={recategoriseTag} />
+          ))}
+          {(newTagCategory === "work" ? workTags : personalTags).length === 0 && (
+            <p className="py-6 text-center text-sm text-muted">No {newTagCategory} tags yet</p>
           )}
         </div>
       )}
