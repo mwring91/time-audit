@@ -102,5 +102,10 @@ export function useTags() {
     return { error: error?.message };
   }, [supabase]);
 
-  return { tags, createTag, renameTag, deleteTag, recolourTag, isLoading };
+  const recategoriseTag = useCallback(async (id: string, category: "work" | "personal") => {
+    const { error } = await supabase.from("tags").update({ category }).eq("id", id);
+    return { error: error?.message };
+  }, [supabase]);
+
+  return { tags, createTag, renameTag, deleteTag, recolourTag, recategoriseTag, isLoading };
 }

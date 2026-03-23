@@ -7,11 +7,12 @@ import { useTags } from "@/lib/hooks/useTags";
 import { TAG_COLOURS } from "@/lib/constants";
 import type { Tag } from "@/lib/database.types";
 
-function TagRow({ tag, onRename, onDelete, onRecolour }: {
+function TagRow({ tag, onRename, onDelete, onRecolour, onRecategorise }: {
   tag: Tag;
   onRename: (id: string, name: string) => Promise<{ error: string | undefined }>;
   onDelete: (id: string) => Promise<{ error: string | undefined }>;
   onRecolour: (id: string, colour: string) => Promise<{ error: string | undefined }>;
+  onRecategorise: (id: string, category: "work" | "personal") => Promise<{ error: string | undefined }>;
 }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(tag.name);
@@ -107,6 +108,13 @@ function TagRow({ tag, onRename, onDelete, onRecolour }: {
         {!editing && (
           <>
             <button
+              onClick={() => onRecategorise(tag.id, tag.category === "work" ? "personal" : "work")}
+              className="text-xs text-muted hover:text-foreground transition-colors px-2 py-1"
+              title={`Move to ${tag.category === "work" ? "personal" : "work"}`}
+            >
+              {tag.category === "work" ? "Personal" : "Work"}
+            </button>
+            <button
               onClick={() => { setEditing(true); setDeleteError(null); }}
               className="text-xs text-muted hover:text-foreground transition-colors px-2 py-1"
             >
@@ -133,7 +141,7 @@ function TagRow({ tag, onRename, onDelete, onRecolour }: {
 }
 
 export default function TagsPage() {
-  const { tags, createTag, renameTag, deleteTag, recolourTag, isLoading } = useTags();
+  const { tags, createTag, renameTag, deleteTag, recolourTag, recategoriseTag, isLoading } = useTags();
   const [newTagName, setNewTagName] = useState("");
   const [newTagCategory, setNewTagCategory] = useState<"work" | "personal">("work");
   const [creating, setCreating] = useState(false);
@@ -225,7 +233,7 @@ export default function TagsPage() {
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Work</h2>
               <div className="space-y-2">
                 {workTags.map((tag) => (
-                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} />
+                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} onRecategorise={recategoriseTag} />
                 ))}
               </div>
             </div>
@@ -235,7 +243,7 @@ export default function TagsPage() {
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Personal</h2>
               <div className="space-y-2">
                 {personalTags.map((tag) => (
-                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} />
+                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} onRecategorise={recategoriseTag} />
                 ))}
               </div>
             </div>
