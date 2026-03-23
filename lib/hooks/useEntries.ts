@@ -112,6 +112,12 @@ export function useEntries(dateRange: DateRange) {
       .single();
 
     if (error) return { error: error.message };
+
+    const entry = result as EntryWithTag;
+    setEntries((prev) =>
+      [entry, ...prev].sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+    );
+
     return { data: result };
   }, [supabase]);
 

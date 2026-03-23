@@ -135,6 +135,7 @@ function TagRow({ tag, onRename, onDelete, onRecolour }: {
 export default function TagsPage() {
   const { tags, createTag, renameTag, deleteTag, recolourTag, isLoading } = useTags();
   const [newTagName, setNewTagName] = useState("");
+  const [newTagCategory, setNewTagCategory] = useState<"work" | "personal">("work");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,7 +144,7 @@ export default function TagsPage() {
     if (!newTagName.trim()) return;
     setCreating(true);
     setError(null);
-    const result = await createTag(newTagName.trim());
+    const result = await createTag(newTagName.trim(), newTagCategory);
     setCreating(false);
     if (result.error) {
       setError(result.error);
@@ -151,6 +152,9 @@ export default function TagsPage() {
       setNewTagName("");
     }
   }
+
+  const workTags = tags.filter((t) => t.category === "work");
+  const personalTags = tags.filter((t) => t.category === "personal");
 
   return (
     <main
@@ -165,21 +169,39 @@ export default function TagsPage() {
       </div>
 
       {/* Add new tag */}
-      <form onSubmit={handleCreate} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={newTagName}
-          onChange={(e) => setNewTagName(e.target.value)}
-          placeholder="New tag name…"
-          className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
-        />
-        <button
-          type="submit"
-          disabled={creating || !newTagName.trim()}
-          className="rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
-        >
-          {creating ? "Adding…" : "Add"}
-        </button>
+      <form onSubmit={handleCreate} className="space-y-2 mb-6">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            placeholder="New tag name…"
+            className="flex-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={creating || !newTagName.trim()}
+            className="btn-primary rounded-xl disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white"
+          >
+            {creating ? "Adding…" : "Add"}
+          </button>
+        </div>
+        <div className="flex rounded-xl border border-border bg-surface p-1 gap-1">
+          {(["work", "personal"] as const).map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setNewTagCategory(cat)}
+              className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-colors capitalize ${
+                newTagCategory === cat
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </form>
 
       {error && <p className="text-xs text-red-400 mb-4">{error}</p>}
@@ -197,10 +219,27 @@ export default function TagsPage() {
           <p className="mt-1 text-xs text-muted">Add your first tag above to get started</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {tags.map((tag) => (
-            <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} />
-          ))}
+        <div className="space-y-6">
+          {workTags.length > 0 && (
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Work</h2>
+              <div className="space-y-2">
+                {workTags.map((tag) => (
+                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} />
+                ))}
+              </div>
+            </div>
+          )}
+          {personalTags.length > 0 && (
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Personal</h2>
+              <div className="space-y-2">
+                {personalTags.map((tag) => (
+                  <TagRow key={tag.id} tag={tag} onRename={renameTag} onDelete={deleteTag} onRecolour={recolourTag} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

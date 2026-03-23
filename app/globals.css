@@ -11,18 +11,26 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
-  --surface: #141414;
-  --border: rgba(255, 255, 255, 0.1);
-  --muted: #9ca3af;
+  --background: #0d0d12;
+  --foreground: #f8f8f8;
+  --surface: #15151d;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted: #8b92a5;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Primary action button gradient */
+.btn-primary {
+  background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ea6c0a 0%, #c91c1c 100%);
 }
 
 /* Native date/time input theming */

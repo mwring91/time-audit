@@ -115,7 +115,7 @@ export default function EditSheet({ entry, tags, open, onClose, onSave, onDelete
           <button
             onClick={handleSave}
             disabled={saving || !taskName.trim() || !tagId}
-            className="flex-1 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
+            className="btn-primary flex-1 rounded-xl disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>

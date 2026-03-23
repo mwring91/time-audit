@@ -66,14 +66,14 @@ export function useTags() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const createTag = useCallback(async (name: string) => {
+  const createTag = useCallback(async (name: string, category: "work" | "personal" = "work") => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "Not authenticated" };
 
     const colour = getNextTagColour(tags.length);
     const { data, error } = await supabase
       .from("tags")
-      .insert({ name: name.trim(), colour, user_id: user.id })
+      .insert({ name: name.trim(), colour, category, user_id: user.id })
       .select()
       .single();
 

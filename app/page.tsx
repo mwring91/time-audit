@@ -2,7 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 import { useTimer } from "@/lib/hooks/useTimer";
 import { useTags } from "@/lib/hooks/useTags";
 import { useEntries } from "@/lib/hooks/useEntries";
@@ -23,6 +25,14 @@ function getTodayRange() {
 }
 
 export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data: { session } }) => {
+      if (!session) router.replace("/login");
+    });
+  }, [router]);
+
   const [taskName, setTaskName] = useState("");
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -91,7 +101,7 @@ export default function HomePage() {
             <button
               onClick={handleStart}
               disabled={starting || !taskName.trim() || !selectedTagId || !!runningEntry}
-              className="flex-1 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-semibold text-white transition-colors flex items-center justify-center gap-2"
+              className="btn-primary flex-1 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 text-sm font-semibold text-white flex items-center justify-center gap-2"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5,3 19,12 5,21" />
@@ -140,6 +150,7 @@ export default function HomePage() {
         onClose={() => setShowManual(false)}
         tags={tags}
         lastEntryToday={lastEntryToday}
+        initialTaskName={taskName}
         onSubmit={async (data) => { await createEntry(data); }}
       />
     </main>

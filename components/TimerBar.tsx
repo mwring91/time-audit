@@ -29,7 +29,7 @@ export default function TimerBar({ runningEntry, elapsedSeconds, onStop }: Timer
         </span>
         <button
           onClick={onStop}
-          className="rounded-lg bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-semibold text-white transition-colors"
+          className="btn-primary rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
         >
           Stop
         </button>

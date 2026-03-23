@@ -28,6 +28,7 @@ export default function ReviewPage() {
   const [fromStr, setFromStr] = useState(toDateInputValue(defaults.from));
   const [toStr, setToStr] = useState(toDateInputValue(defaults.to));
   const [view, setView] = useState<"task" | "day">("task");
+  const [category, setCategory] = useState<"all" | "work" | "personal">("all");
 
   const dateRange = useMemo(() => ({
     from: new Date(fromStr),
@@ -37,6 +38,11 @@ export default function ReviewPage() {
   const { entries, isLoading, updateEntry, deleteEntry } = useEntries(dateRange);
   const { tags } = useTags();
   const [editEntry, setEditEntry] = useState<EntryWithTag | null>(null);
+
+  const filteredEntries = useMemo(() =>
+    category === "all" ? entries : entries.filter((e) => e.tags?.category === category),
+    [entries, category]
+  );
 
   return (
     <main
@@ -65,6 +71,23 @@ export default function ReviewPage() {
         />
       </div>
 
+      {/* Category toggle */}
+      <div className="flex rounded-xl border border-border bg-surface p-1 mb-3 gap-1">
+        {(["all", "work", "personal"] as const).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors capitalize ${
+              category === cat
+                ? "bg-accent text-white shadow-sm"
+                : "text-muted hover:text-foreground"
+            }`}
+          >
+            {cat === "all" ? "All" : cat}
+          </button>
+        ))}
+      </div>
+
       {/* View toggle */}
       <div className="flex rounded-xl border border-border bg-surface p-1 mb-5 gap-1">
         {(["task", "day"] as const).map((v) => (
@@ -90,9 +113,9 @@ export default function ReviewPage() {
           ))}
         </div>
       ) : view === "task" ? (
-        <ReviewByTask entries={entries} tags={tags} onTapEntry={setEditEntry} />
+        <ReviewByTask entries={filteredEntries} tags={tags} onTapEntry={setEditEntry} />
       ) : (
-        <ReviewByDay entries={entries} tags={tags} from={dateRange.from} to={dateRange.to} />
+        <ReviewByDay entries={filteredEntries} tags={tags} from={dateRange.from} to={dateRange.to} />
       )}
       <EditSheet
         entry={editEntry}

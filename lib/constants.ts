@@ -7,6 +7,13 @@ export const TAG_COLOURS = [
   "#5a9ea0", // Steel teal
   "#a89060", // Warm sand
   "#b06b55", // Terracotta
+  "#4e9e8b", // Seafoam
+  "#c97b6a", // Coral
+  "#7a8fc9", // Periwinkle
+  "#9ab85a", // Olive lime
+  "#b8637a", // Berry
+  "#5f8f6b", // Forest green
+  "#c4a03c", // Gold
 ] as const;
 
 export function getNextTagColour(existingCount: number): string {

@@ -12,10 +12,11 @@ interface ManualEntryFormProps {
   onClose: () => void;
   tags: Tag[];
   lastEntryToday: EntryWithTag | null;
+  initialTaskName?: string;
   onSubmit: (data: { task_name: string; tag_id: string; started_at: string; ended_at: string }) => Promise<void>;
 }
 
-export default function ManualEntryForm({ open, onClose, tags, lastEntryToday, onSubmit }: ManualEntryFormProps) {
+export default function ManualEntryForm({ open, onClose, tags, lastEntryToday, initialTaskName, onSubmit }: ManualEntryFormProps) {
   const [taskName, setTaskName] = useState("");
   const [tagId, setTagId] = useState("");
   const [date, setDate] = useState(toDateInputValue(new Date()));
@@ -37,6 +38,9 @@ export default function ManualEntryForm({ open, onClose, tags, lastEntryToday, o
         const thirtyMinsAgo = new Date(now.getTime() - 30 * 60 * 1000);
         setStartTime(toTimeInputValue(thirtyMinsAgo));
       }
+
+      // Pre-fill task name from timer bar if provided
+      if (initialTaskName) setTaskName(initialTaskName);
 
       // Keep previous selections for repeat entries
       if (!taskName) setTagId(tags[0]?.id ?? "");
@@ -113,7 +117,7 @@ export default function ManualEntryForm({ open, onClose, tags, lastEntryToday, o
         <button
           type="submit"
           disabled={saving || !taskName.trim() || !tagId || !startTime || !endTime}
-          className="w-full rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
+          className="btn-primary w-full rounded-xl disabled:opacity-40 px-4 py-2.5 text-sm font-semibold text-white"
         >
           {saving ? "Saving…" : "Log entry"}
         </button>
