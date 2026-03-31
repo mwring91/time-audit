@@ -112,7 +112,7 @@ function TagRow({ tag, onRename, onDelete, onRecolour, onRecategorise }: {
               className="text-xs text-muted hover:text-foreground transition-colors px-2 py-1"
               title={`Move to ${tag.category === "work" ? "personal" : "work"}`}
             >
-              {tag.category === "work" ? "Personal" : "Work"}
+              {tag.category === "work" ? "Work" : "Personal"}
             </button>
             <button
               onClick={() => { setEditing(true); setDeleteError(null); }}
