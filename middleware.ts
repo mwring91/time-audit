@@ -24,7 +24,14 @@ export async function middleware(request: NextRequest) {
   );
 
   // Refresh session — must call getUser() for security (not getSession())
-  const { data: { user } } = await supabase.auth.getUser();
+  // Timeout prevents MIDDLEWARE_INVOCATION_TIMEOUT when Supabase is slow/paused
+  const getUserWithTimeout = () =>
+    Promise.race([
+      supabase.auth.getUser(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+    ]);
+  const userResult = await getUserWithTimeout();
+  const user = userResult?.data?.user ?? null;
 
   const { pathname } = request.nextUrl;
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/auth");
